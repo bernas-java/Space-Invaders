@@ -1,0 +1,116 @@
+package main;
+
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+
+public class Alien {
+
+    private int points;
+    private int health;
+    private int index;
+    private int width;
+    private int height;
+    private int x;
+    private int y;
+    private int line;
+
+    private BufferedImage image;
+    private BufferedImage image2;
+    private BufferedImage image3;
+    private BufferedImage image4;
+
+    Alien(int index, int line, int health) {
+        this.index = index;
+        this.width = 30;
+        this.height = 30;
+        this.x = index * 50 + 63 ;
+        this.y = line * 50 + 50;
+        this.health = health;
+        this.points = health * 5;
+        this.line = line;
+        try {
+            image = ImageIO.read(new File("alien5.jpg"));
+        } catch (IOException ex) {
+            // handle exception...
+        }
+        try {
+            image2 = ImageIO.read(new File("alien2.gif"));
+        } catch (IOException ex) {
+            // handle exception...
+        }
+        try {
+            image3 = ImageIO.read(new File("alien4.jpeg"));
+        } catch (IOException ex) {
+            // handle exception...
+        }
+        try {
+            image4 = ImageIO.read(new File("alien1.jpg"));
+        } catch (IOException ex) {
+            // handle exception...
+        }
+
+    }
+
+    public void draw(Graphics g) {
+
+        g.setColor(Color.RED);
+        if (line == 0) {
+            g.drawImage(image, x, y, width, height, null);
+        }
+        if (line == 1) {
+            g.drawImage(image2, x, y, width, height, null);
+        }
+        if (line == 2) {
+            g.drawImage(image3, x, y, width, height, null);
+        }
+        if (line == 3) {
+            g.drawImage(image4, x, y, width, height, null);
+        }
+
+    }
+
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public int getHealth() {
+        return health;
+    }
+
+    public void setHealth(int health) {
+        this.health = health;
+    }
+
+    public void setWidth(int width) {
+        this.width = width;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
+    }
+
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public void setY(int y) {
+        this.y = y;
+    }
+
+}
