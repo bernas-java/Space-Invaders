@@ -1,0 +1,44 @@
+package main;
+
+public class Collisions {
+
+    public static boolean squaresCol(Alien square1, Shot square2) {
+        int dbY1 = square1.getY() + square1.getHeight();
+        int dbY2 = square2.getY() + square2.getHeight();
+        int kbY1 = square1.getY();
+        int kbY2 = square2.getY();
+        int dbX1 = square1.getX() + square1.getWidth();
+        int dbX2 = square2.getX() + square2.getWidth();
+        int kbX1 = square1.getX();
+        int kbX2 = square2.getX();
+        boolean x = false;
+
+        if ((kbX1 >= kbX2 && kbX1 <= dbX2 || dbX1 >= kbX2 && dbX1 <= dbX2)) x =  true;
+        if ((kbX2 >= kbX1 && kbX2 <= dbX1 || dbX2 >= kbX1 && dbX2 <= dbX1)) x =  true;
+
+        if ((kbY1 >= kbY2 && kbY1 <= dbY2 || dbY1 >= kbY2 && dbY1 <= dbY2) && x) return true;
+        if ((kbY2 >= kbY1 && kbY2 <= dbY1 || dbY2 >= kbY1 && dbY2 <= dbY1) && x) return true;
+        return false;
+    }
+
+    public static boolean squaresCol(Player square1, Shot square2) {
+        int dbY1 = square1.getY() + square1.getHeight();
+        int dbY2 = square2.getY() + square2.getHeight();
+        int kbY1 = square1.getY();
+        int kbY2 = square2.getY();
+        int dbX1 = square1.getX() + square1.getWidth();
+        int dbX2 = square2.getX() + square2.getWidth();
+        int kbX1 = square1.getX();
+        int kbX2 = square2.getX();
+        boolean x = false;
+
+        if ((kbX1 >= kbX2 && kbX1 <= dbX2 || dbX1 >= kbX2 && dbX1 <= dbX2)) x =  true;
+        if ((kbX2 >= kbX1 && kbX2 <= dbX1 || dbX2 >= kbX1 && dbX2 <= dbX1)) x =  true;
+
+        if ((kbY1 >= kbY2 && kbY1 <= dbY2 || dbY1 >= kbY2 && dbY1 <= dbY2) && x) return true;
+        if ((kbY2 >= kbY1 && kbY2 <= dbY1 || dbY2 >= kbY1 && dbY2 <= dbY1) && x) return true;
+        return false;
+    }
+
+
+}
