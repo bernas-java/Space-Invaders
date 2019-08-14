@@ -1,0 +1,305 @@
+package main;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.ArrayList;
+import java.util.Random;
+
+public class GamePanel extends JPanel implements Runnable, KeyListener, MouseListener, MouseMotionListener {
+
+    static final int WIDTH = 800, HEIGHT = 600;
+
+    private Thread t;
+    private boolean running;
+    private boolean gameOver = false;
+    private boolean gameWon = false;
+    private int ticks = 0;
+    private int aliensticks = 0;
+
+    private int aspeed = 60;
+    private int xMov = 1;
+    private int specialShots = 10;
+
+    private boolean doNothing = false;
+    private boolean prevdid = false;
+    private boolean special = false;
+
+    private ArrayList<Shot> shots;
+    private ArrayList<Shot> enemyShots;
+    private ArrayList<Alien> aliens;
+    private Player p;
+
+    GamePanel() {
+
+        setPreferredSize(new Dimension(WIDTH,HEIGHT));
+        setFocusable(true);
+        addMouseListener(this);
+        addMouseMotionListener(this);
+        addKeyListener(this);
+        shots = new ArrayList<>();
+        enemyShots = new ArrayList<>();
+        aliens = new ArrayList<>();
+        p = new Player();
+
+        create();
+        start();
+
+    }
+
+    private void start() {
+        running = true;
+        t = new Thread(this);
+        try {
+            t.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    void stop() {
+        running = false;
+        try {
+            t.join();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void tick() {
+        // shots
+        shotsTick();
+        // aliens
+        if (ticks == aspeed) alienTick();
+        // collisions
+        if (shots.size() > 0) colTick();
+
+        ticks++;
+    }
+
+    private void shotsTick() {
+        for (int i = 0; i < shots.size(); i++) {
+            shots.get(i).tick();
+            if (shots.get(i).getY() < 0) {
+                shots.remove(i);
+            }
+        }
+        for (int i = 0; i < enemyShots.size(); i++) {
+            enemyShots.get(i).tick();
+            if (Collisions.squaresCol(p,enemyShots.get(i))) gameOver = true;
+            if (enemyShots.get(i).getY() > 600) {
+                enemyShots.remove(i);
+            }
+        }
+    }
+
+    private void alienTick() {
+        if (aliens.size() == 0) gameWon = true;
+        Random random = new Random();
+        for (int i = 0; i < aliens.size(); i++) {
+            if (doNothing) {
+                aliens.get(i).setY(aliens.get(i).getY()+10);
+            }
+            if (xMov >= 0 && !doNothing) {
+                aliens.get(i).setX(aliens.get(i).getX()+50);
+            } else if (xMov < 0 && !doNothing) {
+                aliens.get(i).setX(aliens.get(i).getX()-50);
+            }
+            int s = random.nextInt(100);
+            if (s < 5) {
+                enemyShots.add(new Shot(aliens.get(i).getX() + 12, aliens.get(i).getY(), true));
+            }
+        }
+        if (!doNothing) {
+            xMov++;
+        }
+        if (doNothing) {
+            doNothing = false;
+        }
+        if (xMov == 2) {
+            doNothing = true;
+        }
+        if (xMov == 0 && !prevdid) {
+            doNothing = true;
+            prevdid = true;
+        } else if (prevdid && xMov == 0) {
+            doNothing = false;
+            prevdid = false;
+        }
+        if (xMov > 1)  {
+            xMov = -2;
+        }
+
+        if (aliensticks == 7 && aspeed > 10) {
+            aspeed -= 2;
+            aliensticks = 0;
+        }
+        aliensticks++;
+        ticks = 0;
+    }
+
+    private void colTick() {
+        loop:
+        for (int i = 0; i < aliens.size(); i++) {
+            for (int j = 0; j < shots.size(); j++) {
+                if (Collisions.squaresCol(aliens.get(i), shots.get(j))) {
+                    shots.remove(j);
+                    aliens.get(i).setHealth(aliens.get(i).getHealth()-10);
+                    if (aliens.get(i).getHealth() <= 0) {
+                        aliens.remove(i);
+                    }
+                    break loop;
+                }
+            }
+        }
+    }
+
+    private void create() {
+        int x = 4;
+        for (int j = 0; j < 4; j++) {
+            for (int i = 0; i < 14; i++) {
+                aliens.add(new Alien(i, j, x*10));
+            }
+            x--;
+        }
+    }
+
+    public void paint(Graphics g) {
+        g.clearRect(0, 0, WIDTH, HEIGHT);
+
+        //  background
+        g.setColor(new Color(0));
+        g.fillRect(0, 0, WIDTH, HEIGHT);
+
+        // shot
+        for (Shot s : shots) {
+            s.draw(g);
+        }
+        // enemy shot
+        for (Shot s : enemyShots) {
+            s.draw(g);
+        }
+        // aliens
+        for (int i = 0; i < aliens.size(); i++) {
+            aliens.get(i).draw(g);
+        }
+        // player
+        p.draw(g);
+
+        if (special && specialShots > 0) {
+            g.setColor(Color.YELLOW);
+            g.setFont(new Font("Courier New", Font.ITALIC, 20));
+            g.drawString("SPECIAL POWER ACTIVE!",3,20);
+        }
+        if (special && specialShots == 0) {
+            g.setColor(Color.RED);
+            g.setFont(new Font("Courier New", Font.ITALIC, 20));
+            g.drawString("SPECIAL POWER UNAVAILABLE!",3,20);
+        }
+
+        if (gameOver) {
+            g.setColor(Color.WHITE);
+            g.setFont(new Font("Courier New", Font.ITALIC, 140));
+            g.drawString("GAME",WIDTH/2-175,HEIGHT/2-20);
+            g.drawString("OVER",WIDTH/2-175,HEIGHT/2+30);
+            g.setColor(Color.BLUE);
+            g.drawString("GAME",WIDTH/2-170,HEIGHT/2-20);
+            g.drawString("OVER",WIDTH/2-170,HEIGHT/2+30);
+            stop();
+        }
+
+        if (gameWon) {
+            g.setColor(Color.WHITE);
+            g.setFont(new Font("Courier New", Font.ITALIC, 140));
+            g.drawString("YOU",WIDTH/2-145,HEIGHT/2-20);
+            g.drawString("WON",WIDTH/2-145,HEIGHT/2+30);
+            g.setColor(Color.YELLOW);
+            g.drawString("YOU",WIDTH/2-140,HEIGHT/2-20);
+            g.drawString("WON",WIDTH/2-140,HEIGHT/2+30);
+            stop();
+        }
+
+    }
+
+    @Override
+    public void run() {
+        while (running) {
+            repaint();
+            tick();
+            repaint();
+            try {
+                Thread.sleep(1000/70);
+            } catch (InterruptedException e) {
+                System.out.println("error");
+            }
+            repaint();
+        }
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        int key = e.getKeyCode();
+
+        if (key == 17 && !special) {
+            special = true;
+        }
+        else if (key == 17 && special) {
+            special = false;
+        }
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+        if (shots.size() == 0 && !special) {
+            shots.add(new Shot(p.getX()+20,HEIGHT-60,false));
+        }
+        if (shots.size() == 0 && special && specialShots > 0) {
+            shots.add(new Shot(p.getX(),HEIGHT-60,false));
+            shots.add(new Shot(p.getX()+35,HEIGHT-60,false));
+            specialShots--;
+        }
+
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseDragged(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent e) {
+        int mx = e.getX();
+
+        p.setX(mx-20);
+    }
+}
